@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.0
 import QtQuick.Window 2.15
+import lkimuk 1.0
 
 // color style from http://colrd.com/image-dna/24016/
 
@@ -11,7 +12,19 @@ Window {
     height: 1080 / 2
     visible: true
     title: qsTr("excode")
-    color: "#062f4f" // "#a1d8b1"
+    color: "#28737c" // "#a1d8b1"
+
+    Row {
+        anchors.left: codeArea.left
+        anchors.top: parent.top
+        anchors.topMargin: 10
+
+        CoolComboBox {
+            width: 100
+            height: 30
+            imageSource: "palette-white.svg"
+        }
+    }
 
     Rectangle {
         id: codeArea
@@ -19,7 +32,8 @@ Window {
         y: root.height * 0.1
         width: root.width * 0.8
         height: root.height * 0.8
-        color: "#28737c"
+        color: "#4aab5e"
+        radius: 3
 
         ScrollView {
             anchors.topMargin: 30
@@ -41,13 +55,18 @@ Window {
                     id: code
                     textFormat: TextEdit.RichText
                     text: "welcome welcome!"
-                    color: "#e9de4c"
+                    color: "#eef1c4"
                     background: Rectangle { color: codeArea.color }
                     selectByMouse: true
                     onTextChanged: updateLineNumber(lineCount)
                 }
             }
         }
+    }
+
+    Highlighter {
+        id: highlighter
+        textDocument: code.textDocument
     }
 
 
