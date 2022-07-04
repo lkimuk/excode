@@ -40,6 +40,7 @@ private:
     QTextCharFormat classFormat;
     QTextCharFormat singleLineCommentFormat;
     QTextCharFormat multiLineCommentFormat;
+    QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
 
     QQuickTextDocument* m_TextDocument{ nullptr };

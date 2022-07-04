@@ -21,8 +21,16 @@ Window {
 
         CoolComboBox {
             width: 100
-            height: 30
-            imageSource: "palette-white.svg"
+            height: 40
+            imageSource: "palette-regular-straight-white.png"
+        }
+
+        Item { width: 60; height: 1 }
+
+        CoolComboBox {
+            width: 100
+            height: 40
+            imageSource: "piggy-bank-regular-straight-white.png"
         }
     }
 
@@ -32,7 +40,7 @@ Window {
         y: root.height * 0.1
         width: root.width * 0.8
         height: root.height * 0.8
-        color: "#4aab5e"
+        color: "#151718"
         radius: 3
 
         ScrollView {
@@ -44,8 +52,8 @@ Window {
                     id: lineNumber
                     height: code.height
                     text: "1"
-
                     color: "#eef1c4"
+                    font.family: code.font.family
                     readOnly: true
                     horizontalAlignment: TextEdit.AlignRight
                     background: Rectangle { color: "#44eef1c4" }
@@ -55,7 +63,8 @@ Window {
                     id: code
                     textFormat: TextEdit.RichText
                     text: "welcome welcome!"
-                    color: "#eef1c4"
+                    color: "#55b5db"
+                    font.family: "Times"
                     background: Rectangle { color: codeArea.color }
                     selectByMouse: true
                     onTextChanged: updateLineNumber(lineCount)

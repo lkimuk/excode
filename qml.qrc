@@ -2,7 +2,9 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>CoolComboBox.qml</file>
-        <file>palette-black.svg</file>
-        <file>palette-white.svg</file>
+        <file>piggy-bank-regular-straight-black.png</file>
+        <file>piggy-bank-regular-straight-white.png</file>
+        <file>palette-regular-straight-black.png</file>
+        <file>palette-regular-straight-white.png</file>
     </qresource>
 </RCC>

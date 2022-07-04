@@ -21,10 +21,10 @@ Item {
         anchors.top: parent.top
 
         Image {
-            x: 5
-            y: 5
-            width: parent.height - 10
-            height: parent.height - 10
+            x: 10
+            y: 10
+            width: parent.height - 20
+            height: parent.height - 20
             source: imageSource
         }
 
