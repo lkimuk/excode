@@ -20,17 +20,21 @@ Window {
         anchors.topMargin: 10
 
         CoolComboBox {
+            type: "styles"
             width: 100
             height: 40
             imageSource: "palette-regular-straight-white.png"
+            model: highlightingStyleController.model()
         }
 
         Item { width: 60; height: 1 }
 
         CoolComboBox {
+            type: "languages"
             width: 100
             height: 40
             imageSource: "piggy-bank-regular-straight-white.png"
+            model: languageController.model()
         }
     }
 
@@ -54,6 +58,7 @@ Window {
                     text: "1"
                     color: "#eef1c4"
                     font.family: code.font.family
+                    font.pointSize: code.font.pointSize
                     readOnly: true
                     horizontalAlignment: TextEdit.AlignRight
                     background: Rectangle { color: "#44eef1c4" }
@@ -63,20 +68,25 @@ Window {
                     id: code
                     textFormat: TextEdit.RichText
                     text: "welcome welcome!"
-                    color: "#55b5db"
-                    font.family: "Times"
+                    color: "#00ff00"
+                    font.family: "Consolas"
+                    font.pointSize: 14
                     background: Rectangle { color: codeArea.color }
                     selectByMouse: true
                     onTextChanged: updateLineNumber(lineCount)
+
+                    Component.onCompleted: {
+                        highlighterController.textDocument = code.textDocument
+                    }
                 }
             }
         }
     }
 
-    Highlighter {
-        id: highlighter
-        textDocument: code.textDocument
-    }
+//    Highlighter {
+//        id: highlighter
+//        textDocument: code.textDocument
+//    }
 
 
     /**

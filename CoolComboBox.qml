@@ -6,7 +6,9 @@ import QtQuick.Controls 2.12
 
 Item {
     id: root
+    property string type
     property string imageSource
+    property alias model: coolComboBox.model
 
     Rectangle {
         id: borderRectangle
@@ -36,7 +38,16 @@ Item {
             anchors.right: parent.right
 
 
-            model: ["First", "Second", "Third"]
+            model: model
+
+            onCurrentTextChanged: {
+                if (type == "languages") {
+                    highlighterController.setLanguage(currentText)
+                }
+                if (type == "styles") {
+                    highlighterController.setHighlighter(currentText)
+                }
+            }
 
             delegate: ItemDelegate {
                 id: itemDelegate
