@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.0
 import QtQuick.Window 2.15
-import lkimuk 1.0
 
 // color style from http://colrd.com/image-dna/24016/
 
@@ -68,7 +67,7 @@ Window {
                     id: code
                     textFormat: TextEdit.RichText
                     text: "welcome welcome!"
-                    color: "#00ff00"
+                    color: "#55b5db"
                     font.family: "Consolas"
                     font.pointSize: 14
                     background: Rectangle { color: codeArea.color }

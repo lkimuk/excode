@@ -1,6 +1,5 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include "Highlighter.h"
 
 #include <HighlighterController.h>
 #include <HighlightingStyleController.h>
@@ -18,9 +17,10 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     QQmlApplicationEngine engine;
 
-    qmlRegisterType<Highlighter>("lkimuk", 1, 0, "Highlighter");
     qmlRegisterType<HighlightingStyleModel>("com.highlighting.style", 1, 0, "HighlightingStyleModel");
     qmlRegisterType<LanguageModel>("com.language.model", 1, 0, "LanguageModel");
+
+    HighlighterController* highlighterController = new HighlighterController(&engine);
 
     HighlightingStyleController* highlightingStyleController = new HighlightingStyleController(&engine);
     highlightingStyleController->addHighlightingStyle("VSCode");
@@ -29,8 +29,6 @@ int main(int argc, char *argv[])
     LanguageController* languageController = new LanguageController(&engine);
     languageController->addLanguage("C");
     languageController->addLanguage("C++");
-
-    HighlighterController* highlighterController = new HighlighterController(&engine);
 
     QQmlContext* context = engine.rootContext();
     context->setContextProperty("highlightingStyleController", highlightingStyleController);

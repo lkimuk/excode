@@ -6,38 +6,58 @@
 #include <QSyntaxHighlighter>
 
 
+
+struct syntax_patterns_t {
+    QString classPattern;
+    QString quotationPattern;
+    QString functionPattern;
+    QString singlelineCommentPattern;
+    std::pair<QString, QString> multilineCommentPattern;
+};
+
+struct language_t {
+    QString name;
+    std::vector<QString> keywords;
+    syntax_patterns_t syntax;
+};
+
+struct highlighter_t {
+    QString name;
+    QString keywordsColor;
+    QString classColor;
+    QString quotationColor;
+    QString functionColor;
+    QString singlelineCommentColor;
+    QString multilineCommentColor;
+};
+
+
 class AbstractHighlighter : public QSyntaxHighlighter
 {
     Q_OBJECT
 
+    using assoc_type = std::unordered_map<QString, std::function<void()>>;
+
 public:
     explicit AbstractHighlighter(QObject *parent = nullptr);
 
-    // set current highter
-    virtual void setHighlighter(const QString& highlighter) = 0;
+    void setCurrentLanguage(const QString& lang);
+
+    void setCurrentHighlighter(const QString& style);
 
     QQuickTextDocument* getTextDocument() const;
     void setTextDocument(QQuickTextDocument* textDocument);
 
+private:
+    void updateStyle();
+    void setGeneralRules(const QString& color, const QString& pattern);
+    void setMultiLineCommentRules(const QColor& color, const QString& startPattern, const QString& endPattern);
+
 protected:
     void highlightBlock(const QString &text) override;
 
-    // clear all highter rules
-    void clearHighlightingRules();
-
-    // register highter rules
-    void registerHighlighterRules(const QColor& color, const char* pattern);
-
-    // setMultiline
-    void setMultiLineCommentRules(const QColor& color, const char* startPattern, const char* endPattern);
-
-    // clear keywords
-    void clearKeywords();
-
-    // append keyword
-    void registerKeywords(std::initializer_list<QString> keywords);
-
-    const std::vector<QString>& keywords() const;
+    void appendLanguages(const language_t& lang);
+    void appendHighlighters(const highlighter_t& style);
 
 private:
     struct HighlightingRule {
@@ -46,10 +66,14 @@ private:
     };
     QList<HighlightingRule> m_highlightingRules;
     QQuickTextDocument* m_textDocument{ nullptr };
-    std::vector<QString> m_keywords;
     QRegularExpression m_commentStartExpression;
     QRegularExpression m_commentEndExpression;
     QTextCharFormat m_multiLineCommentFormat;
+
+    assoc_type m_languages;
+    assoc_type m_highlighters;
+    language_t m_currentLanguage;
+    highlighter_t m_currentHighlighter;
 };
 
 #endif // ABSTRACTHIGHLIGHTER_H

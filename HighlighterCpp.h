@@ -10,8 +10,6 @@ class HighlighterCpp : public AbstractHighlighter
 
 public:
     explicit HighlighterCpp(QObject *parent = nullptr);
-
-    void setHighlighter(const QString& highlighter) override;
 };
 
 #endif // HIGHLIGHTERCPP_H

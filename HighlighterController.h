@@ -16,7 +16,6 @@ class HighlighterController : public QObject
 public:
     explicit HighlighterController(QObject *parent = nullptr);
 
-
     Q_INVOKABLE void setLanguage(const QString& lang);
     Q_INVOKABLE void setHighlighter(const QString& highlighter);
 

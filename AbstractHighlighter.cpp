@@ -1,8 +1,23 @@
 #include "AbstractHighlighter.h"
 
+
 AbstractHighlighter::AbstractHighlighter(QObject *parent)
     : QSyntaxHighlighter{parent}
 {
+}
+
+void AbstractHighlighter::setCurrentLanguage(const QString& lang)
+{
+    if (m_languages.find(lang) != m_languages.end()) {
+        m_languages[lang]();
+    }
+}
+
+void AbstractHighlighter::setCurrentHighlighter(const QString& style)
+{
+    if (m_highlighters.find(style) != m_highlighters.end()) {
+        m_highlighters[style]();
+    }
 }
 
 QQuickTextDocument* AbstractHighlighter::getTextDocument() const
@@ -52,41 +67,66 @@ void AbstractHighlighter::highlightBlock(const QString &text)
     }
 }
 
-void AbstractHighlighter::clearHighlightingRules()
+void AbstractHighlighter::updateStyle()
 {
     m_highlightingRules.clear();
+
+    setGeneralRules(m_currentHighlighter.classColor, m_currentLanguage.syntax.classPattern);
+    setGeneralRules(m_currentHighlighter.functionColor, m_currentLanguage.syntax.functionPattern);
+    setGeneralRules(m_currentHighlighter.quotationColor, m_currentLanguage.syntax.quotationPattern);
+    setGeneralRules(m_currentHighlighter.singlelineCommentColor, m_currentLanguage.syntax.singlelineCommentPattern);
+    const auto& [start, end] = m_currentLanguage.syntax.multilineCommentPattern;
+    setMultiLineCommentRules(m_currentHighlighter.multilineCommentColor, start, end);
+
+    for (const auto& pattern : m_currentLanguage.keywords) {
+        setGeneralRules(m_currentHighlighter.keywordsColor, "\\b" + pattern + "\\b");
+    }
 }
 
-void AbstractHighlighter::registerHighlighterRules(const QColor &color, const char *pattern)
+void AbstractHighlighter::setGeneralRules(const QString& color, const QString& pattern)
 {
     QTextCharFormat syntaxFormat;
     HighlightingRule rule;
 
-    syntaxFormat.setForeground(color);
+    syntaxFormat.setForeground(QColor(color));
     rule.format = syntaxFormat;
     rule.pattern = QRegularExpression(pattern);
     m_highlightingRules.append(rule);
 }
 
-void AbstractHighlighter::setMultiLineCommentRules(const QColor &color, const char *startPattern, const char *endPattern)
+void AbstractHighlighter::setMultiLineCommentRules(const QColor &color, const QString& startPattern, const QString& endPattern)
 {
     m_multiLineCommentFormat.setForeground(color);
     m_commentStartExpression = QRegularExpression(startPattern);
     m_commentEndExpression = QRegularExpression(endPattern);
 }
 
-void AbstractHighlighter::clearKeywords()
+void AbstractHighlighter::appendLanguages(const language_t &lang)
 {
-    m_keywords.clear();
+    m_languages[lang.name] = [this, lang]() {
+        m_currentLanguage.name = lang.name;
+        m_currentLanguage.keywords = lang.keywords;
+        m_currentLanguage.syntax.classPattern = lang.syntax.classPattern;
+        m_currentLanguage.syntax.functionPattern = lang.syntax.functionPattern;
+        m_currentLanguage.syntax.quotationPattern = lang.syntax.quotationPattern;
+        m_currentLanguage.syntax.singlelineCommentPattern = lang.syntax.singlelineCommentPattern;
+        m_currentLanguage.syntax.multilineCommentPattern = lang.syntax.multilineCommentPattern;
+
+        updateStyle();
+    };
 }
 
-void AbstractHighlighter::registerKeywords(std::initializer_list<QString> keywords)
+void AbstractHighlighter::appendHighlighters(const highlighter_t &style)
 {
-    for (const auto& elem : keywords)
-        m_keywords.push_back("\\b" + elem + "\\b");
-}
+    m_highlighters[style.name] = [this, style]() {
+        m_currentHighlighter.name = style.name;
+        m_currentHighlighter.keywordsColor = style.keywordsColor;
+        m_currentHighlighter.classColor = style.classColor;
+        m_currentHighlighter.functionColor = style.functionColor;
+        m_currentHighlighter.quotationColor = style.quotationColor;
+        m_currentHighlighter.singlelineCommentColor = style.singlelineCommentColor;
+        m_currentHighlighter.multilineCommentColor = style.multilineCommentColor;
 
-const std::vector<QString> &AbstractHighlighter::keywords() const
-{
-    return m_keywords;
+        updateStyle();
+    };
 }
