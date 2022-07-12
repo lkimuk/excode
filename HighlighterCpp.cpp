@@ -17,22 +17,30 @@ HighlighterCpp::HighlighterCpp(QObject *parent)
                               "short", "signed", "sizeof", "static", "staticCast", "static_assert", "struct", "switch", "synchronized",
                               "template", "this", "thread_local", "throw", "true", "try", "typedef", "typeid", "typename", "union",
                               "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while", "xor", "xor_eq" };
-    lang.syntax.classPattern = "\\bQ[A-Za-z]+\\b";
     lang.syntax.functionPattern = "\\b[A-Za-z0-9_]+(?=\\()";
-    lang.syntax.quotationPattern = "\".*\"";
+    lang.syntax.quotationPattern = "\".*\"\\w*";
     lang.syntax.singlelineCommentPattern = "//[^\n]*";
     lang.syntax.multilineCommentPattern = { "/\\*", "\\*/" };
+    lang.syntax.attributesPattern = "\\[\\[.*\\]\\]\\s";
+    lang.syntax.includePattern = "^#include\\s?[<\"][A-Za-z][\\w\\.]+[>\"]";
+    lang.syntax.numberPattern = "\\d+\\w*(\\.\\d*\\w*)?";
+    lang.operators = { "::", "++", "--", ".", "->", "+", "-", "*", "!", "~", "&", "new", "delete", ".*", "->*", "<<", ">>",
+                       "<", ">", "<=>", "<=", ">=", "==", "!=", "^", "|", "&&", "||", "?", ":", "throw", "+=", "-=", "*=",
+                       "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "," };
+
 
     appendLanguages(lang);
 
     highlighter_t style;
     style.name = "VSCode";
     style.keywordsColor = "#ffff55";
-    style.classColor = "#ffff55";
     style.quotationColor = "#61a33b";
     style.functionColor = "#00ff00";
-    style.singlelineCommentColor = "#41535b";
-    style.multilineCommentColor = "#41535b";
+    style.commentColor = "#41535b";
+    style.attributesColor = "#ff0000";
+    style.includeColor = "#00ffff";
+    style.numberColor = "#ffff00";
+    style.operatorColor = "#ff00ff";
 
     appendHighlighters(style);
 }

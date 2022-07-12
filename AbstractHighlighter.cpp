@@ -71,16 +71,27 @@ void AbstractHighlighter::updateStyle()
 {
     m_highlightingRules.clear();
 
-    setGeneralRules(m_currentHighlighter.classColor, m_currentLanguage.syntax.classPattern);
     setGeneralRules(m_currentHighlighter.functionColor, m_currentLanguage.syntax.functionPattern);
     setGeneralRules(m_currentHighlighter.quotationColor, m_currentLanguage.syntax.quotationPattern);
-    setGeneralRules(m_currentHighlighter.singlelineCommentColor, m_currentLanguage.syntax.singlelineCommentPattern);
+    setGeneralRules(m_currentHighlighter.commentColor, m_currentLanguage.syntax.singlelineCommentPattern);
+    setGeneralRules(m_currentHighlighter.attributesColor, m_currentLanguage.syntax.attributesPattern);
+    setGeneralRules(m_currentHighlighter.includeColor, m_currentLanguage.syntax.includePattern);
+    setGeneralRules(m_currentHighlighter.numberColor, m_currentLanguage.syntax.numberPattern);
     const auto& [start, end] = m_currentLanguage.syntax.multilineCommentPattern;
-    setMultiLineCommentRules(m_currentHighlighter.multilineCommentColor, start, end);
+    setMultiLineCommentRules(m_currentHighlighter.commentColor, start, end);
 
     for (const auto& pattern : m_currentLanguage.keywords) {
         setGeneralRules(m_currentHighlighter.keywordsColor, "\\b" + pattern + "\\b");
     }
+
+//    QTextCharFormat syntaxFormat;
+//    HighlightingRule rule;
+//    for (const auto& pattern : m_currentLanguage.operators) {
+//        syntaxFormat.setForeground(QColor(m_currentHighlighter.operatorColor));
+//        rule.format = syntaxFormat;
+//        rule.pattern = QRegularExpression("\\b" + pattern + "\\b");
+//        m_highlightingRules.append(rule);
+//    }
 }
 
 void AbstractHighlighter::setGeneralRules(const QString& color, const QString& pattern)
@@ -106,11 +117,14 @@ void AbstractHighlighter::appendLanguages(const language_t &lang)
     m_languages[lang.name] = [this, lang]() {
         m_currentLanguage.name = lang.name;
         m_currentLanguage.keywords = lang.keywords;
-        m_currentLanguage.syntax.classPattern = lang.syntax.classPattern;
         m_currentLanguage.syntax.functionPattern = lang.syntax.functionPattern;
         m_currentLanguage.syntax.quotationPattern = lang.syntax.quotationPattern;
         m_currentLanguage.syntax.singlelineCommentPattern = lang.syntax.singlelineCommentPattern;
         m_currentLanguage.syntax.multilineCommentPattern = lang.syntax.multilineCommentPattern;
+
+        m_currentLanguage.syntax.attributesPattern = lang.syntax.attributesPattern;
+        m_currentLanguage.syntax.includePattern = lang.syntax.includePattern;
+        m_currentLanguage.syntax.numberPattern = lang.syntax.numberPattern;
 
         updateStyle();
     };
@@ -121,11 +135,14 @@ void AbstractHighlighter::appendHighlighters(const highlighter_t &style)
     m_highlighters[style.name] = [this, style]() {
         m_currentHighlighter.name = style.name;
         m_currentHighlighter.keywordsColor = style.keywordsColor;
-        m_currentHighlighter.classColor = style.classColor;
         m_currentHighlighter.functionColor = style.functionColor;
         m_currentHighlighter.quotationColor = style.quotationColor;
-        m_currentHighlighter.singlelineCommentColor = style.singlelineCommentColor;
-        m_currentHighlighter.multilineCommentColor = style.multilineCommentColor;
+        m_currentHighlighter.commentColor = style.commentColor;
+
+        m_currentHighlighter.attributesColor = style.attributesColor;
+        m_currentHighlighter.includeColor = style.includeColor;
+        m_currentHighlighter.numberColor = style.numberColor;
+        m_currentHighlighter.operatorColor = style.operatorColor;
 
         updateStyle();
     };

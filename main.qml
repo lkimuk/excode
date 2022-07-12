@@ -2,8 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls 2.0
 import QtQuick.Window 2.15
 
-// color style from http://colrd.com/image-dna/24016/
-
 
 Window {
     id: root
@@ -11,7 +9,7 @@ Window {
     height: 1080 / 2
     visible: true
     title: qsTr("excode")
-    color: "#28737c" // "#a1d8b1"
+    color: "#28737c"
 
     Row {
         anchors.left: codeArea.left

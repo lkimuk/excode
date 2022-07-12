@@ -8,27 +8,35 @@
 
 
 struct syntax_patterns_t {
-    QString classPattern;
     QString quotationPattern;
     QString functionPattern;
     QString singlelineCommentPattern;
     std::pair<QString, QString> multilineCommentPattern;
+
+    QString attributesPattern; // new
+    QString includePattern;   // new
+    QString numberPattern; // new
 };
 
 struct language_t {
     QString name;
     std::vector<QString> keywords;
+    std::vector<QString> operators;
     syntax_patterns_t syntax;
 };
 
 struct highlighter_t {
     QString name;
-    QString keywordsColor;
-    QString classColor;
-    QString quotationColor;
+    QString attributesColor; // new
+    QString commentColor;
     QString functionColor;
-    QString singlelineCommentColor;
-    QString multilineCommentColor;
+    QString includeColor; // new
+    QString keywordsColor;
+    QString numberColor; // new
+    QString operatorColor; // new
+    QString quotationColor;
+    QString textColor; // new
+
 };
 
 
@@ -42,7 +50,6 @@ public:
     explicit AbstractHighlighter(QObject *parent = nullptr);
 
     void setCurrentLanguage(const QString& lang);
-
     void setCurrentHighlighter(const QString& style);
 
     QQuickTextDocument* getTextDocument() const;
