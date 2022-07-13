@@ -19,6 +19,9 @@ public:
     Q_INVOKABLE void setLanguage(const QString& lang);
     Q_INVOKABLE void setHighlighter(const QString& highlighter);
 
+    std::vector<QString> getLanguages() const;
+    std::vector<QString> getHighlighters() const;
+
 private:
     QQuickTextDocument* getTextDocument() const;
     void setTextDocument(QQuickTextDocument* textDocument);

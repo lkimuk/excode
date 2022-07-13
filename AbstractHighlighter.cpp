@@ -34,6 +34,24 @@ void AbstractHighlighter::setTextDocument(QQuickTextDocument *textDocument)
     setDocument(m_textDocument->textDocument());
 }
 
+std::vector<QString> AbstractHighlighter::getLanguages() const
+{
+    std::vector<QString> results;
+    for (const auto& [key, value] : m_languages) {
+        results.push_back(key);
+    }
+    return results;
+}
+
+std::vector<QString> AbstractHighlighter::getHighlighters() const
+{
+    std::vector<QString> results;
+    for (const auto& [key, value] : m_highlighters) {
+        results.push_back(key);
+    }
+    return results;
+}
+
 // This function will be called automatically whenever
 // it is necessary by the rich text engine.
 void AbstractHighlighter::highlightBlock(const QString &text)
@@ -77,6 +95,8 @@ void AbstractHighlighter::updateStyle()
     setGeneralRules(m_currentHighlighter.attributesColor, m_currentLanguage.syntax.attributesPattern);
     setGeneralRules(m_currentHighlighter.includeColor, m_currentLanguage.syntax.includePattern);
     setGeneralRules(m_currentHighlighter.numberColor, m_currentLanguage.syntax.numberPattern);
+    // setGeneralRules(m_currentHighlighter.testColor, m_currentLanguage.syntax.testPattern);
+
     const auto& [start, end] = m_currentLanguage.syntax.multilineCommentPattern;
     setMultiLineCommentRules(m_currentHighlighter.commentColor, start, end);
 
@@ -84,14 +104,11 @@ void AbstractHighlighter::updateStyle()
         setGeneralRules(m_currentHighlighter.keywordsColor, "\\b" + pattern + "\\b");
     }
 
-//    QTextCharFormat syntaxFormat;
-//    HighlightingRule rule;
-//    for (const auto& pattern : m_currentLanguage.operators) {
-//        syntaxFormat.setForeground(QColor(m_currentHighlighter.operatorColor));
-//        rule.format = syntaxFormat;
-//        rule.pattern = QRegularExpression("\\b" + pattern + "\\b");
-//        m_highlightingRules.append(rule);
-//    }
+    for (auto& pattern : m_currentLanguage.operators) {
+        escape(pattern); // eliminate escape characters
+        // qDebug() << "operator: " << pattern;
+        setGeneralRules(m_currentHighlighter.operatorColor, pattern);
+    }
 }
 
 void AbstractHighlighter::setGeneralRules(const QString& color, const QString& pattern)
@@ -112,11 +129,28 @@ void AbstractHighlighter::setMultiLineCommentRules(const QColor &color, const QS
     m_commentEndExpression = QRegularExpression(endPattern);
 }
 
+void AbstractHighlighter::escape(QString &character)
+{
+    character.replace("+", "\\+");
+    character.replace("^", "\\^");
+    character.replace("$", "\\$");
+    character.replace(".", "\\.");
+    character.replace("[", "\\[");
+    character.replace("]", "\\]");
+    character.replace("(", "\\(");
+    character.replace(")", "\\)");
+    character.replace("*", "\\*");
+    character.replace("?", "\\?");
+    character.replace("|", "\\|");
+    character.replace("\\\\", "\\");
+}
+
 void AbstractHighlighter::appendLanguages(const language_t &lang)
 {
     m_languages[lang.name] = [this, lang]() {
         m_currentLanguage.name = lang.name;
         m_currentLanguage.keywords = lang.keywords;
+        m_currentLanguage.operators = lang.operators;
         m_currentLanguage.syntax.functionPattern = lang.syntax.functionPattern;
         m_currentLanguage.syntax.quotationPattern = lang.syntax.quotationPattern;
         m_currentLanguage.syntax.singlelineCommentPattern = lang.syntax.singlelineCommentPattern;
@@ -125,6 +159,8 @@ void AbstractHighlighter::appendLanguages(const language_t &lang)
         m_currentLanguage.syntax.attributesPattern = lang.syntax.attributesPattern;
         m_currentLanguage.syntax.includePattern = lang.syntax.includePattern;
         m_currentLanguage.syntax.numberPattern = lang.syntax.numberPattern;
+
+        // m_currentLanguage.syntax.testPattern = lang.syntax.testPattern;
 
         updateStyle();
     };
@@ -143,6 +179,8 @@ void AbstractHighlighter::appendHighlighters(const highlighter_t &style)
         m_currentHighlighter.includeColor = style.includeColor;
         m_currentHighlighter.numberColor = style.numberColor;
         m_currentHighlighter.operatorColor = style.operatorColor;
+
+        // m_currentHighlighter.testColor = style.testColor;
 
         updateStyle();
     };

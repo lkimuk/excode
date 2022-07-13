@@ -24,10 +24,9 @@ HighlighterCpp::HighlighterCpp(QObject *parent)
     lang.syntax.attributesPattern = "\\[\\[.*\\]\\]\\s";
     lang.syntax.includePattern = "^#include\\s?[<\"][A-Za-z][\\w\\.]+[>\"]";
     lang.syntax.numberPattern = "\\d+\\w*(\\.\\d*\\w*)?";
-    lang.operators = { "::", "++", "--", ".", "->", "+", "-", "*", "!", "~", "&", "new", "delete", ".*", "->*", "<<", ">>",
-                       "<", ">", "<=>", "<=", ">=", "==", "!=", "^", "|", "&&", "||", "?", ":", "throw", "+=", "-=", "*=",
+    lang.operators = { "::", "++", "--", ".", "->", "+", "-", "*", "!", "~", "&", ".*", "->*", "<<", ">>", "<", ">",
+                       "<=>", "<=", ">=", "==", "!=", "^", "|", "&&", "||", "?", ":", "throw", "+=", "-=", "*=",
                        "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "," };
-
 
     appendLanguages(lang);
 

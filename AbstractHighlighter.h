@@ -13,9 +13,11 @@ struct syntax_patterns_t {
     QString singlelineCommentPattern;
     std::pair<QString, QString> multilineCommentPattern;
 
-    QString attributesPattern; // new
-    QString includePattern;   // new
-    QString numberPattern; // new
+    QString attributesPattern;
+    QString includePattern;
+    QString numberPattern;
+
+    // QString testPattern;
 };
 
 struct language_t {
@@ -27,16 +29,14 @@ struct language_t {
 
 struct highlighter_t {
     QString name;
-    QString attributesColor; // new
+    QString attributesColor;
     QString commentColor;
     QString functionColor;
-    QString includeColor; // new
+    QString includeColor;
     QString keywordsColor;
-    QString numberColor; // new
-    QString operatorColor; // new
+    QString numberColor;
+    QString operatorColor;
     QString quotationColor;
-    QString textColor; // new
-
 };
 
 
@@ -55,10 +55,14 @@ public:
     QQuickTextDocument* getTextDocument() const;
     void setTextDocument(QQuickTextDocument* textDocument);
 
+    std::vector<QString> getLanguages() const;
+    std::vector<QString> getHighlighters() const;
+
 private:
     void updateStyle();
     void setGeneralRules(const QString& color, const QString& pattern);
     void setMultiLineCommentRules(const QColor& color, const QString& startPattern, const QString& endPattern);
+    void escape(QString& character);
 
 protected:
     void highlightBlock(const QString &text) override;

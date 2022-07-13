@@ -20,6 +20,16 @@ void HighlighterController::setHighlighter(const QString& style)
     m_highlighter->setCurrentHighlighter(style);
 }
 
+std::vector<QString> HighlighterController::getLanguages() const
+{
+    return m_highlighter->getLanguages();
+}
+
+std::vector<QString> HighlighterController::getHighlighters() const
+{
+    return m_highlighter->getHighlighters();
+}
+
 QQuickTextDocument *HighlighterController::getTextDocument() const
 {
     return m_highlighter->getTextDocument();

@@ -23,12 +23,14 @@ int main(int argc, char *argv[])
     HighlighterController* highlighterController = new HighlighterController(&engine);
 
     HighlightingStyleController* highlightingStyleController = new HighlightingStyleController(&engine);
-    highlightingStyleController->addHighlightingStyle("VSCode");
-    highlightingStyleController->addHighlightingStyle("Decco");
+    for (const auto& style : highlighterController->getHighlighters()) {
+        highlightingStyleController->addHighlightingStyle(style);
+    }
 
     LanguageController* languageController = new LanguageController(&engine);
-    languageController->addLanguage("C");
-    languageController->addLanguage("C++");
+    for (const auto& lang : highlighterController->getLanguages()) {
+        languageController->addLanguage(lang);
+    }
 
     QQmlContext* context = engine.rootContext();
     context->setContextProperty("highlightingStyleController", highlightingStyleController);
