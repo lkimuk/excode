@@ -1,9 +1,16 @@
 #include "AbstractHighlighter.h"
 
+#include <QDir>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
 
 AbstractHighlighter::AbstractHighlighter(QObject *parent)
     : QSyntaxHighlighter{parent}
 {
+    initializeLanguages();
 }
 
 void AbstractHighlighter::setCurrentLanguage(const QString& lang)
@@ -143,6 +150,67 @@ void AbstractHighlighter::escape(QString &character)
     character.replace("?", "\\?");
     character.replace("|", "\\|");
     character.replace("\\\\", "\\");
+}
+
+void AbstractHighlighter::initializeLanguages()
+{
+    // qDebug() << "current path: " << QDir::currentPath();
+
+    // 1. Read the language configuration file
+    QFile file("config/config.json");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "failed to open language configuration file!";
+        return;
+    }
+
+    QTextStream textStream(&file);
+    QString data = textStream.readAll();
+    file.close();
+
+    // 2. Get json object
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data.toLocal8Bit());
+    if (jsonDoc.isNull() || !jsonDoc.isObject()) {
+        qDebug() << "failed to create json doc";
+        return;
+    }
+
+    QJsonObject jsonObj = jsonDoc.object();
+    if (jsonObj.isEmpty()) {
+        qDebug() << "json object is empty";
+        return;
+    }
+
+    // 3. Parse the data
+    language_t lang;
+    QJsonArray languages = jsonObj["Languages"].toArray();
+    for (const QJsonValue& value : languages) {
+        QJsonObject language = value.toObject();
+        lang.name = language["name"].toString();
+
+        QJsonObject patterns = language["patterns"].toObject();
+        lang.syntax.attributesPattern = patterns["attribute"].toString();
+        lang.syntax.functionPattern = patterns["function"].toString();
+        lang.syntax.includePattern = patterns["include"].toString();
+        lang.syntax.numberPattern = patterns["number"].toString();
+        lang.syntax.quotationPattern = patterns["quotation"].toString();
+
+        QJsonArray keywords = patterns["keywords"].toArray();
+        for (const auto& keyword : keywords) {
+            lang.keywords.push_back(keyword.toString());
+        }
+
+        QJsonArray operators = patterns["operators"].toArray();
+        for (const auto& optor : operators) {
+            lang.operators.push_back(optor.toString());
+        }
+
+        QJsonObject comment = patterns["comment"].toObject();
+        lang.syntax.singlelineCommentPattern = comment["single-line"].toString();
+        QJsonObject multiLineComment = comment["multi-line"].toObject();
+        auto& [start, end] = lang.syntax.multilineCommentPattern;
+        start = multiLineComment["start"].toString();
+        end = multiLineComment["end"].toString();
+    }
 }
 
 void AbstractHighlighter::appendLanguages(const language_t &lang)

@@ -63,6 +63,7 @@ private:
     void setGeneralRules(const QString& color, const QString& pattern);
     void setMultiLineCommentRules(const QColor& color, const QString& startPattern, const QString& endPattern);
     void escape(QString& character);
+    void initializeLanguages();
 
 protected:
     void highlightBlock(const QString &text) override;
