@@ -28,7 +28,7 @@ HighlighterCpp::HighlighterCpp(QObject *parent)
                        "=", "<=>", "<=", ">=", "==", "!=", "^", "|", "&&", "||", "?", ":", "throw", "+=", "-=", "*=",
                        "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "," };
 
-    appendLanguages(lang);
+    // appendLanguages(lang);
 
     highlighter_t style;
     style.name = "VSCode";
@@ -41,5 +41,5 @@ HighlighterCpp::HighlighterCpp(QObject *parent)
     style.numberColor = "#ffff00";
     style.operatorColor = "#ff00ff";
 
-    appendHighlighters(style);
+    // appendHighlighters(style);
 }

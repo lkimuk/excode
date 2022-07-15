@@ -10,7 +10,7 @@
 AbstractHighlighter::AbstractHighlighter(QObject *parent)
     : QSyntaxHighlighter{parent}
 {
-    initializeLanguages();
+    initializeHighlighters();
 }
 
 void AbstractHighlighter::setCurrentLanguage(const QString& lang)
@@ -56,6 +56,8 @@ std::vector<QString> AbstractHighlighter::getHighlighters() const
     for (const auto& [key, value] : m_highlighters) {
         results.push_back(key);
     }
+    std::sort(results.begin(), results.end());
+
     return results;
 }
 
@@ -96,13 +98,10 @@ void AbstractHighlighter::updateStyle()
 {
     m_highlightingRules.clear();
 
+    setGeneralRules(m_currentHighlighter.textColor, ".*");
     setGeneralRules(m_currentHighlighter.functionColor, m_currentLanguage.syntax.functionPattern);
-    setGeneralRules(m_currentHighlighter.quotationColor, m_currentLanguage.syntax.quotationPattern);
-    setGeneralRules(m_currentHighlighter.commentColor, m_currentLanguage.syntax.singlelineCommentPattern);
     setGeneralRules(m_currentHighlighter.attributesColor, m_currentLanguage.syntax.attributesPattern);
-    setGeneralRules(m_currentHighlighter.includeColor, m_currentLanguage.syntax.includePattern);
     setGeneralRules(m_currentHighlighter.numberColor, m_currentLanguage.syntax.numberPattern);
-    // setGeneralRules(m_currentHighlighter.testColor, m_currentLanguage.syntax.testPattern);
 
     const auto& [start, end] = m_currentLanguage.syntax.multilineCommentPattern;
     setMultiLineCommentRules(m_currentHighlighter.commentColor, start, end);
@@ -116,6 +115,13 @@ void AbstractHighlighter::updateStyle()
         // qDebug() << "operator: " << pattern;
         setGeneralRules(m_currentHighlighter.operatorColor, pattern);
     }
+
+    setGeneralRules(m_currentHighlighter.quotationColor, m_currentLanguage.syntax.quotationPattern);
+    setGeneralRules(m_currentHighlighter.includeColor, m_currentLanguage.syntax.includePattern);
+    setGeneralRules(m_currentHighlighter.commentColor, m_currentLanguage.syntax.singlelineCommentPattern);
+
+    // flush the highligher to take the changed style.
+    rehighlight();
 }
 
 void AbstractHighlighter::setGeneralRules(const QString& color, const QString& pattern)
@@ -152,7 +158,7 @@ void AbstractHighlighter::escape(QString &character)
     character.replace("\\\\", "\\");
 }
 
-void AbstractHighlighter::initializeLanguages()
+void AbstractHighlighter::initializeHighlighters()
 {
     // qDebug() << "current path: " << QDir::currentPath();
 
@@ -180,7 +186,7 @@ void AbstractHighlighter::initializeLanguages()
         return;
     }
 
-    // 3. Parse the data
+    // 3. Parse the Languages data
     language_t lang;
     QJsonArray languages = jsonObj["Languages"].toArray();
     for (const QJsonValue& value : languages) {
@@ -189,10 +195,10 @@ void AbstractHighlighter::initializeLanguages()
 
         QJsonObject patterns = language["patterns"].toObject();
         lang.syntax.attributesPattern = patterns["attribute"].toString();
-        lang.syntax.functionPattern = patterns["function"].toString();
-        lang.syntax.includePattern = patterns["include"].toString();
-        lang.syntax.numberPattern = patterns["number"].toString();
-        lang.syntax.quotationPattern = patterns["quotation"].toString();
+        lang.syntax.functionPattern   = patterns["function"].toString();
+        lang.syntax.includePattern    = patterns["include"].toString();
+        lang.syntax.numberPattern     = patterns["number"].toString();
+        lang.syntax.quotationPattern  = patterns["quotation"].toString();
 
         QJsonArray keywords = patterns["keywords"].toArray();
         for (const auto& keyword : keywords) {
@@ -210,25 +216,45 @@ void AbstractHighlighter::initializeLanguages()
         auto& [start, end] = lang.syntax.multilineCommentPattern;
         start = multiLineComment["start"].toString();
         end = multiLineComment["end"].toString();
+
+        appendLanguages(lang);
+    }
+
+    // 4. Parse the Highlighters data
+    highlighter_t style;
+    QJsonArray highlighters = jsonObj["Highlighters"].toArray();
+    for (const QJsonValue& value : highlighters) {
+        QJsonObject highlighter = value.toObject();
+        style.name = highlighter["name"].toString();
+
+        QJsonObject colors = highlighter["colors"].toObject();
+        style.attributesColor = colors["attributes"].toString();
+        style.commentColor    = colors["comment"].toString();
+        style.functionColor   = colors["function"].toString();
+        style.includeColor    = colors["include"].toString();
+        style.keywordsColor   = colors["keywords"].toString();
+        style.numberColor     = colors["number"].toString();
+        style.operatorColor   = colors["operators"].toString();
+        style.quotationColor  = colors["quotation"].toString();
+        style.textColor       = colors["text"].toString();
+
+        appendHighlighters(style);
     }
 }
 
 void AbstractHighlighter::appendLanguages(const language_t &lang)
 {
     m_languages[lang.name] = [this, lang]() {
-        m_currentLanguage.name = lang.name;
-        m_currentLanguage.keywords = lang.keywords;
-        m_currentLanguage.operators = lang.operators;
-        m_currentLanguage.syntax.functionPattern = lang.syntax.functionPattern;
-        m_currentLanguage.syntax.quotationPattern = lang.syntax.quotationPattern;
+        m_currentLanguage.name                            = lang.name;
+        m_currentLanguage.keywords                        = lang.keywords;
+        m_currentLanguage.operators                       = lang.operators;
+        m_currentLanguage.syntax.attributesPattern        = lang.syntax.attributesPattern;
+        m_currentLanguage.syntax.functionPattern          = lang.syntax.functionPattern;
+        m_currentLanguage.syntax.includePattern           = lang.syntax.includePattern;
+        m_currentLanguage.syntax.numberPattern            = lang.syntax.numberPattern;
+        m_currentLanguage.syntax.quotationPattern         = lang.syntax.quotationPattern;
         m_currentLanguage.syntax.singlelineCommentPattern = lang.syntax.singlelineCommentPattern;
-        m_currentLanguage.syntax.multilineCommentPattern = lang.syntax.multilineCommentPattern;
-
-        m_currentLanguage.syntax.attributesPattern = lang.syntax.attributesPattern;
-        m_currentLanguage.syntax.includePattern = lang.syntax.includePattern;
-        m_currentLanguage.syntax.numberPattern = lang.syntax.numberPattern;
-
-        // m_currentLanguage.syntax.testPattern = lang.syntax.testPattern;
+        m_currentLanguage.syntax.multilineCommentPattern  = lang.syntax.multilineCommentPattern;
 
         updateStyle();
     };
@@ -237,18 +263,16 @@ void AbstractHighlighter::appendLanguages(const language_t &lang)
 void AbstractHighlighter::appendHighlighters(const highlighter_t &style)
 {
     m_highlighters[style.name] = [this, style]() {
-        m_currentHighlighter.name = style.name;
-        m_currentHighlighter.keywordsColor = style.keywordsColor;
-        m_currentHighlighter.functionColor = style.functionColor;
-        m_currentHighlighter.quotationColor = style.quotationColor;
-        m_currentHighlighter.commentColor = style.commentColor;
-
+        m_currentHighlighter.name            = style.name;
         m_currentHighlighter.attributesColor = style.attributesColor;
-        m_currentHighlighter.includeColor = style.includeColor;
-        m_currentHighlighter.numberColor = style.numberColor;
-        m_currentHighlighter.operatorColor = style.operatorColor;
-
-        // m_currentHighlighter.testColor = style.testColor;
+        m_currentHighlighter.commentColor    = style.commentColor;
+        m_currentHighlighter.functionColor   = style.functionColor;
+        m_currentHighlighter.includeColor    = style.includeColor;
+        m_currentHighlighter.keywordsColor   = style.keywordsColor;
+        m_currentHighlighter.numberColor     = style.numberColor;
+        m_currentHighlighter.operatorColor   = style.operatorColor;
+        m_currentHighlighter.quotationColor  = style.quotationColor;
+        m_currentHighlighter.textColor       = style.textColor;
 
         updateStyle();
     };
