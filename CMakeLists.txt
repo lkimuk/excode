@@ -18,7 +18,6 @@ set(PROJECT_SOURCES
         main.cpp
         HighlighterController.h HighlighterController.cpp
         AbstractHighlighter.h AbstractHighlighter.cpp
-        HighlighterCpp.h HighlighterCpp.cpp
         HighlightingStyleController.h HighlightingStyleController.cpp
         HighlightingStyleModel.h HighlightingStyleModel.cpp
         LanguageController.h LanguageController.cpp
