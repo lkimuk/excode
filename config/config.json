@@ -17,7 +17,7 @@
             "operators": [
                 "::", "++", "--", ".", "->", "+", "-", "*", "!", "~", "&", ".*", "->*", "<<", ">>", "<", ">",
                 "=", "<=>", "<=", ">=", "==", "!=", "^", "|", "&&", "||", "?", ":", "throw", "+=", "-=", "*=",
-                "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", ","
+                "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", ",", "(", ")", "{", "}"
             ],
             "attribute": "\\[\\[.*\\]\\]\\s",
             "function": "\\b[A-Za-z0-9_]+(?=\\()",
@@ -25,12 +25,42 @@
             "number": "\\d+\\w*(\\.\\d*\\w*)?",
             "quotation": "\".*\"\\w*",
             "comment": {
-                "single-line": "//[^\n]*",
+                "single-line": "//.*",
                 "multi-line": {
                     "start": "/\\*",
                     "end": "\\*/"
                 }
             }
         }
-    }]
+    }],
+
+    "Highlighters": [{
+        "name": "VSCode",
+        "colors": {
+            "attributes": "#ff0000",
+            "comment": "#41535b",
+            "function": "#00ff00",
+            "include": "#00ffff",
+            "keywords": "#ffff55",
+            "number": "#ffff00",
+            "operators": "#ff00ff",
+            "quotation": "#61a33b",
+            "text": "#ffffff"
+        }
+    },
+    {
+        "name": "Drip",
+        "colors": {
+            "attributes": "#f98a6b",
+            "comment": "#71999b",
+            "function": "#92f748",
+            "include": "#fc648d",
+            "keywords": "#fed760",
+            "number": "#71999b",
+            "operators": "#fc648d",
+            "quotation": "#f98a6b",
+            "text": "#778cdf"
+        }
+    }
+    ]
 }

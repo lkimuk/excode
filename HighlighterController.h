@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-class AbstractHighlighter;
+class Highlighter;
 class QQuickTextDocument;
 
 
@@ -30,7 +30,7 @@ signals:
     void textDocumentChanged();
 
 private:
-    AbstractHighlighter* m_highlighter;
+    Highlighter* m_highlighter;
 };
 
 #endif // HIGHLIGHTERCONTROLLER_H

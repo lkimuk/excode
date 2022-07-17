@@ -1,11 +1,11 @@
 #include "HighlighterController.h"
-#include "AbstractHighlighter.h"
+#include "Highlighter.h"
 
 
 HighlighterController::HighlighterController(QObject *parent)
     : QObject{parent}
 {
-    m_highlighter = new AbstractHighlighter(this);
+    m_highlighter = new Highlighter(this);
 
     setLanguage("C++");
 }

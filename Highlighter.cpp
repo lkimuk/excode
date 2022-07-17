@@ -1,63 +1,64 @@
 #include "Highlighter.h"
 
+#include <QDir>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
-Highlighter::Highlighter(QObject* parent)
-    : QSyntaxHighlighter(parent)
+
+Highlighter::Highlighter(QObject *parent)
+    : QSyntaxHighlighter{parent}
 {
-    // KEYWORDS RULES
-    keywordFormat.setForeground(QColor(255, 255, 85));
-    //keywordFormat.setFontWeight(QFont::Bold);
-    const QString keywordPatterns[] = {
-        QStringLiteral("\\bchar\\b"), QStringLiteral("\\bclass\\b"), QStringLiteral("\\bconst\\b"),
-        QStringLiteral("\\bdouble\\b"), QStringLiteral("\\benum\\b"), QStringLiteral("\\bexplicit\\b"),
-        QStringLiteral("\\bfriend\\b"), QStringLiteral("\\binline\\b"), QStringLiteral("\\bint\\b"),
-        QStringLiteral("\\blong\\b"), QStringLiteral("\\bnamespace\\b"), QStringLiteral("\\boperator\\b"),
-        QStringLiteral("\\bprivate\\b"), QStringLiteral("\\bprotected\\b"), QStringLiteral("\\bpublic\\b"),
-        QStringLiteral("\\bshort\\b"), QStringLiteral("\\bsignals\\b"), QStringLiteral("\\bsigned\\b"),
-        QStringLiteral("\\bslots\\b"), QStringLiteral("\\bstatic\\b"), QStringLiteral("\\bstruct\\b"),
-        QStringLiteral("\\btemplate\\b"), QStringLiteral("\\btypedef\\b"), QStringLiteral("\\btypename\\b"),
-        QStringLiteral("\\bunion\\b"), QStringLiteral("\\bunsigned\\b"), QStringLiteral("\\bvirtual\\b"),
-        QStringLiteral("\\bvoid\\b"), QStringLiteral("\\bvolatile\\b"), QStringLiteral("\\bbool\\b")
-    };
+    initializeHighlighters();
+}
 
-    HighlightingRule rule;
-    for (const QString& pattern : keywordPatterns) {
-        rule.pattern = QRegularExpression(pattern);
-        rule.format = keywordFormat;
-        highlightingRules.append(rule);
+void Highlighter::setCurrentLanguage(const QString& lang)
+{
+    if (m_languages.find(lang) != m_languages.end()) {
+        m_languages[lang]();
     }
+}
 
-    // CLASS RULES
-    classFormat.setFontWeight(QFont::Bold);
-    classFormat.setForeground(Qt::darkMagenta);
-    rule.pattern = QRegularExpression(QStringLiteral("\\bQ[A-Za-z]+\\b"));
-    rule.format = classFormat;
-    highlightingRules.append(rule);
+void Highlighter::setCurrentHighlighter(const QString& style)
+{
+    if (m_highlighters.find(style) != m_highlighters.end()) {
+        m_highlighters[style]();
+    }
+}
 
-    // QUOTATION RULES
-    quotationFormat.setForeground(Qt::darkGreen);
-    rule.pattern = QRegularExpression(QStringLiteral("\".*\""));
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
+QQuickTextDocument* Highlighter::getTextDocument() const
+{
+    return m_textDocument;
+}
 
-    // FUNCTION RULES
-    // functionFormat.setFontItalic(true);
-    functionFormat.setForeground(Qt::white);
-    rule.pattern = QRegularExpression(QStringLiteral("\\b[A-Za-z0-9_]+(?=\\()"));
-    rule.format = functionFormat;
-    highlightingRules.append(rule);
+void Highlighter::setTextDocument(QQuickTextDocument *textDocument)
+{
+    if (textDocument == m_textDocument)
+        return;
 
-    // SINGLE LINE COMMENT RULES
-    singleLineCommentFormat.setForeground(Qt::red);
-    rule.pattern = QRegularExpression(QStringLiteral("//[^\n]*"));
-    rule.format = singleLineCommentFormat;
-    highlightingRules.append(rule);
+    m_textDocument = textDocument;
+    setDocument(m_textDocument->textDocument());
+}
 
-    // MULTI LINE COMMENT RULES
-    multiLineCommentFormat.setForeground(Qt::red);
+std::vector<QString> Highlighter::getLanguages() const
+{
+    std::vector<QString> results;
+    for (const auto& [key, value] : m_languages) {
+        results.push_back(key);
+    }
+    return results;
+}
 
-    commentStartExpression = QRegularExpression(QStringLiteral("/\\*"));
-    commentEndExpression = QRegularExpression(QStringLiteral("\\*/"));
+std::vector<QString> Highlighter::getHighlighters() const
+{
+    std::vector<QString> results;
+    for (const auto& [key, value] : m_highlighters) {
+        results.push_back(key);
+    }
+    std::sort(results.begin(), results.end());
+
+    return results;
 }
 
 // This function will be called automatically whenever
@@ -65,7 +66,7 @@ Highlighter::Highlighter(QObject* parent)
 void Highlighter::highlightBlock(const QString &text)
 {
     // define our own highlighting rules.
-    for (const HighlightingRule& rule : qAsConst(highlightingRules)) {
+    for (const HighlightingRule& rule : qAsConst(m_highlightingRules)) {
         QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
         while (matchIterator.hasNext()) {
             QRegularExpressionMatch match = matchIterator.next();
@@ -76,10 +77,10 @@ void Highlighter::highlightBlock(const QString &text)
     setCurrentBlockState(0);
     int startIndex = 0;
     if (previousBlockState() != 1)
-        startIndex = text.indexOf(commentStartExpression);
+        startIndex = text.indexOf(m_commentStartExpression);
 
     while (startIndex >= 0) {
-        QRegularExpressionMatch match = commentEndExpression.match(text, startIndex);
+        QRegularExpressionMatch match = m_commentEndExpression.match(text, startIndex);
         int endIndex = match.capturedStart();
         int commentLength = 0;
         if (endIndex == -1) {
@@ -88,22 +89,191 @@ void Highlighter::highlightBlock(const QString &text)
         } else {
             commentLength = endIndex - startIndex + match.capturedLength();
         }
-        setFormat(startIndex, commentLength, multiLineCommentFormat);
-        startIndex = text.indexOf(commentStartExpression, startIndex + commentLength);
+        setFormat(startIndex, commentLength, m_multiLineCommentFormat);
+        startIndex = text.indexOf(m_commentStartExpression, startIndex + commentLength);
     }
 }
 
-QQuickTextDocument *Highlighter::getTextDocument() const
+void Highlighter::updateStyle()
 {
-    return m_TextDocument;
+    m_highlightingRules.clear();
+
+    setGeneralRules(m_currentHighlighter.textColor, ".*");
+    setGeneralRules(m_currentHighlighter.functionColor, m_currentLanguage.syntax.functionPattern);
+    setGeneralRules(m_currentHighlighter.attributesColor, m_currentLanguage.syntax.attributesPattern);
+    setGeneralRules(m_currentHighlighter.numberColor, m_currentLanguage.syntax.numberPattern);
+
+    const auto& [start, end] = m_currentLanguage.syntax.multilineCommentPattern;
+    setMultiLineCommentRules(m_currentHighlighter.commentColor, start, end);
+
+    for (const auto& pattern : m_currentLanguage.keywords) {
+        setGeneralRules(m_currentHighlighter.keywordsColor, "\\b" + pattern + "\\b");
+    }
+
+    for (auto& pattern : m_currentLanguage.operators) {
+        escape(pattern); // eliminate escape characters
+        // qDebug() << "operator: " << pattern;
+        setGeneralRules(m_currentHighlighter.operatorColor, pattern);
+    }
+
+    setGeneralRules(m_currentHighlighter.quotationColor, m_currentLanguage.syntax.quotationPattern);
+    setGeneralRules(m_currentHighlighter.includeColor, m_currentLanguage.syntax.includePattern);
+    setGeneralRules(m_currentHighlighter.commentColor, m_currentLanguage.syntax.singlelineCommentPattern);
+
+    // flush the highligher to take the changed style.
+    rehighlight();
 }
 
-void Highlighter::setTextDocument(QQuickTextDocument *textDocument)
+void Highlighter::setGeneralRules(const QString& color, const QString& pattern)
 {
-    if (textDocument == m_TextDocument) return;
+    QTextCharFormat syntaxFormat;
+    HighlightingRule rule;
 
-    m_TextDocument = textDocument;
-    setDocument(m_TextDocument->textDocument());
+    syntaxFormat.setForeground(QColor(color));
+    rule.format = syntaxFormat;
+    rule.pattern = QRegularExpression(pattern);
+    m_highlightingRules.append(rule);
+}
 
-    emit textDocumentChanged();
+void Highlighter::setMultiLineCommentRules(const QColor &color, const QString& startPattern, const QString& endPattern)
+{
+    m_multiLineCommentFormat.setForeground(color);
+    m_commentStartExpression = QRegularExpression(startPattern);
+    m_commentEndExpression = QRegularExpression(endPattern);
+}
+
+void Highlighter::escape(QString &character)
+{
+    character.replace("+", "\\+");
+    character.replace("^", "\\^");
+    character.replace("$", "\\$");
+    character.replace(".", "\\.");
+    character.replace("[", "\\[");
+    character.replace("]", "\\]");
+    character.replace("(", "\\(");
+    character.replace(")", "\\)");
+    character.replace("*", "\\*");
+    character.replace("?", "\\?");
+    character.replace("|", "\\|");
+    character.replace("\\\\", "\\");
+}
+
+void Highlighter::initializeHighlighters()
+{
+    // qDebug() << "current path: " << QDir::currentPath();
+
+    // 1. Read the language configuration file
+    QFile file("config/config.json");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "failed to open language configuration file!";
+        return;
+    }
+
+    QTextStream textStream(&file);
+    QString data = textStream.readAll();
+    file.close();
+
+    // 2. Get json object
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data.toLocal8Bit());
+    if (jsonDoc.isNull() || !jsonDoc.isObject()) {
+        qDebug() << "failed to create json doc";
+        return;
+    }
+
+    QJsonObject jsonObj = jsonDoc.object();
+    if (jsonObj.isEmpty()) {
+        qDebug() << "json object is empty";
+        return;
+    }
+
+    // 3. Parse the Languages data
+    language_t lang;
+    QJsonArray languages = jsonObj["Languages"].toArray();
+    for (const QJsonValue& value : languages) {
+        QJsonObject language = value.toObject();
+        lang.name = language["name"].toString();
+
+        QJsonObject patterns = language["patterns"].toObject();
+        lang.syntax.attributesPattern = patterns["attribute"].toString();
+        lang.syntax.functionPattern   = patterns["function"].toString();
+        lang.syntax.includePattern    = patterns["include"].toString();
+        lang.syntax.numberPattern     = patterns["number"].toString();
+        lang.syntax.quotationPattern  = patterns["quotation"].toString();
+
+        QJsonArray keywords = patterns["keywords"].toArray();
+        for (const auto& keyword : keywords) {
+            lang.keywords.push_back(keyword.toString());
+        }
+
+        QJsonArray operators = patterns["operators"].toArray();
+        for (const auto& optor : operators) {
+            lang.operators.push_back(optor.toString());
+        }
+
+        QJsonObject comment = patterns["comment"].toObject();
+        lang.syntax.singlelineCommentPattern = comment["single-line"].toString();
+        QJsonObject multiLineComment = comment["multi-line"].toObject();
+        auto& [start, end] = lang.syntax.multilineCommentPattern;
+        start = multiLineComment["start"].toString();
+        end = multiLineComment["end"].toString();
+
+        appendLanguages(lang);
+    }
+
+    // 4. Parse the Highlighters data
+    highlighter_t style;
+    QJsonArray highlighters = jsonObj["Highlighters"].toArray();
+    for (const QJsonValue& value : highlighters) {
+        QJsonObject highlighter = value.toObject();
+        style.name = highlighter["name"].toString();
+
+        QJsonObject colors = highlighter["colors"].toObject();
+        style.attributesColor = colors["attributes"].toString();
+        style.commentColor    = colors["comment"].toString();
+        style.functionColor   = colors["function"].toString();
+        style.includeColor    = colors["include"].toString();
+        style.keywordsColor   = colors["keywords"].toString();
+        style.numberColor     = colors["number"].toString();
+        style.operatorColor   = colors["operators"].toString();
+        style.quotationColor  = colors["quotation"].toString();
+        style.textColor       = colors["text"].toString();
+
+        appendHighlighters(style);
+    }
+}
+
+void Highlighter::appendLanguages(const language_t &lang)
+{
+    m_languages[lang.name] = [this, lang]() {
+        m_currentLanguage.name                            = lang.name;
+        m_currentLanguage.keywords                        = lang.keywords;
+        m_currentLanguage.operators                       = lang.operators;
+        m_currentLanguage.syntax.attributesPattern        = lang.syntax.attributesPattern;
+        m_currentLanguage.syntax.functionPattern          = lang.syntax.functionPattern;
+        m_currentLanguage.syntax.includePattern           = lang.syntax.includePattern;
+        m_currentLanguage.syntax.numberPattern            = lang.syntax.numberPattern;
+        m_currentLanguage.syntax.quotationPattern         = lang.syntax.quotationPattern;
+        m_currentLanguage.syntax.singlelineCommentPattern = lang.syntax.singlelineCommentPattern;
+        m_currentLanguage.syntax.multilineCommentPattern  = lang.syntax.multilineCommentPattern;
+
+        updateStyle();
+    };
+}
+
+void Highlighter::appendHighlighters(const highlighter_t &style)
+{
+    m_highlighters[style.name] = [this, style]() {
+        m_currentHighlighter.name            = style.name;
+        m_currentHighlighter.attributesColor = style.attributesColor;
+        m_currentHighlighter.commentColor    = style.commentColor;
+        m_currentHighlighter.functionColor   = style.functionColor;
+        m_currentHighlighter.includeColor    = style.includeColor;
+        m_currentHighlighter.keywordsColor   = style.keywordsColor;
+        m_currentHighlighter.numberColor     = style.numberColor;
+        m_currentHighlighter.operatorColor   = style.operatorColor;
+        m_currentHighlighter.quotationColor  = style.quotationColor;
+        m_currentHighlighter.textColor       = style.textColor;
+
+        updateStyle();
+    };
 }

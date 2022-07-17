@@ -16,8 +16,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Quick)
 
 set(PROJECT_SOURCES
         main.cpp
+        Highlighter.h Highlighter.cpp
         HighlighterController.h HighlighterController.cpp
-        AbstractHighlighter.h AbstractHighlighter.cpp
         HighlightingStyleController.h HighlightingStyleController.cpp
         HighlightingStyleModel.h HighlightingStyleModel.cpp
         LanguageController.h LanguageController.cpp
