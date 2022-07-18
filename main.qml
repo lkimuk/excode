@@ -37,14 +37,16 @@ Window {
 
     Rectangle {
         id: codeArea
-        x: root.width * 0.1
-        y: root.height * 0.1
+//        x: root.width * 0.1
+//        y: root.height * 0.1
+        anchors.centerIn: parent
         width: root.width * 0.8
         height: root.height * 0.8
         color: "#151718"
         radius: 3
 
         ScrollView {
+            id: scroll
             anchors.topMargin: 30
             anchors.fill: parent
 
@@ -77,6 +79,28 @@ Window {
                     }
                 }
             }
+        }
+    }
+
+    Rectangle {
+        id: dummy
+        color: "yellow" // root.color
+        width: image.width + 20   // image.width < codeArea.width ? codeArea.width : image.width + 20
+        height: image.height + 20 // image.height < codeArea.height ? codeArea.height : image.width + 20
+
+        Image {
+            id: image
+            anchors.centerIn: parent
+        }
+    }
+
+    Button {
+        text: qsTr("Save as image")
+        onClicked: {
+            code.grabToImage(function(result) {
+                // result.saveToFile("temp.png")
+                image.source = result.url
+            });
         }
     }
 
