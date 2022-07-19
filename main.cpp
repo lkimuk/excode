@@ -1,3 +1,4 @@
+#include <ImageClipboard.h>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<HighlightingStyleModel>("com.highlighting.style", 1, 0, "HighlightingStyleModel");
     qmlRegisterType<LanguageModel>("com.language.model", 1, 0, "LanguageModel");
+    qmlRegisterType<ImageClipboard>("lkimuk.ImageClipboard", 1, 0, "ImageClipboard");
 
     HighlighterController* highlighterController = new HighlighterController(&engine);
 

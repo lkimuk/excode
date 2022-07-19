@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Quick)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Quick)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Quick )
 
 set(PROJECT_SOURCES
         main.cpp
@@ -22,6 +22,7 @@ set(PROJECT_SOURCES
         HighlightingStyleModel.h HighlightingStyleModel.cpp
         LanguageController.h LanguageController.cpp
         LanguageModel.h LanguageModel.cpp
+        ImageClipboard.h ImageClipboard.cpp
         qml.qrc
 )
 

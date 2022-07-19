@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.0
 import QtQuick.Window 2.15
+import lkimuk.ImageClipboard 1.0
 
 
 Window {
@@ -12,7 +13,7 @@ Window {
     color: "#28737c"
 
     Row {
-        anchors.left: codeArea.left
+        anchors.left: codeContainer.left
         anchors.top: parent.top
         anchors.topMargin: 10
 
@@ -36,7 +37,7 @@ Window {
     }
 
     Rectangle {
-        id: codeArea
+        id: codeContainer
 //        x: root.width * 0.1
 //        y: root.height * 0.1
         anchors.centerIn: parent
@@ -50,32 +51,41 @@ Window {
             anchors.topMargin: 30
             anchors.fill: parent
 
-            Row {
-                TextArea {
-                    id: lineNumber
-                    height: code.height
-                    text: "1"
-                    color: "#eef1c4"
-                    font.family: code.font.family
-                    font.pointSize: code.font.pointSize
-                    readOnly: true
-                    horizontalAlignment: TextEdit.AlignRight
-                    background: Rectangle { color: "#44eef1c4" }
-                }
+            Rectangle {
+                id: codeArea
+                width: codeRow.width
+                height: codeRow.height
+                color: "transparent"
 
-                TextArea {
-                    id: code
-                    textFormat: TextEdit.RichText
-                    text: "welcome welcome!"
-                    color: "#55b5db"
-                    font.family: "Consolas"
-                    font.pointSize: 14
-                    background: Rectangle { color: codeArea.color }
-                    selectByMouse: true
-                    onTextChanged: updateLineNumber(lineCount)
+                Row {
+                    id: codeRow
 
-                    Component.onCompleted: {
-                        highlighterController.textDocument = code.textDocument
+                    TextArea {
+                        id: lineNumber
+                        height: code.height
+                        text: "1"
+                        color: "#eef1c4"
+                        font.family: code.font.family
+                        font.pointSize: code.font.pointSize
+                        readOnly: true
+                        horizontalAlignment: TextEdit.AlignRight
+                        background: Rectangle { color: "#44eef1c4" }
+                    }
+
+                    TextArea {
+                        id: code
+                        textFormat: TextEdit.RichText
+                        text: "welcome welcome!"
+                        color: "#55b5db"
+                        font.family: "Consolas"
+                        font.pointSize: 14
+                        background: Rectangle { color: codeContainer.color }
+                        selectByMouse: true
+                        onTextChanged: updateLineNumber(lineCount)
+
+                        Component.onCompleted: {
+                            highlighterController.textDocument = code.textDocument
+                        }
                     }
                 }
             }
@@ -84,24 +94,40 @@ Window {
 
     Rectangle {
         id: dummy
-        color: "yellow" // root.color
-        width: image.width + 20   // image.width < codeArea.width ? codeArea.width : image.width + 20
-        height: image.height + 20 // image.height < codeArea.height ? codeArea.height : image.width + 20
+        color: root.color
+        width: codeBackground.width * 1.2   // image.width < codeArea.width ? codeArea.width : image.width + 20
+        height: codeBackground.height * 1.2 // image.height < codeArea.height ? codeArea.height : image.width + 20
 
-        Image {
-            id: image
-            anchors.centerIn: parent
+        Rectangle {
+            id: codeBackground
+            anchors.centerIn: parent;
+            width: codeImage.width + 40
+            height: codeImage.height + 60 + 30
+            radius: codeContainer.radius
+            color: codeContainer.color
+
+            Image {
+                id: codeImage
+                x: 20
+                y: 60
+            }
         }
     }
 
     Button {
         text: qsTr("Save as image")
         onClicked: {
-            code.grabToImage(function(result) {
+            codeArea.grabToImage(function(result) {
                 // result.saveToFile("temp.png")
-                image.source = result.url
+                codeImage.source = result.url
+
+                imageClipboard.copyToClipboard(dummy)
             });
         }
+    }
+
+    ImageClipboard {
+        id: imageClipboard
     }
 
 //    Highlighter {
